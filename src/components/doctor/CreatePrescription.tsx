@@ -1,14 +1,22 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
+
+interface Patient {
+  id: string;
+  first_name: string | null;
+  last_name: string | null;
+}
 
 const CreatePrescription = ({ doctorId }: { doctorId: string }) => {
   const [loading, setLoading] = useState(false);
+  const [patients, setPatients] = useState<Patient[]>([]);
   const [formData, setFormData] = useState({
     patientId: "",
     diagnosis: "",
@@ -16,6 +24,24 @@ const CreatePrescription = ({ doctorId }: { doctorId: string }) => {
     validUntil: "",
     medications: "",
   });
+
+  useEffect(() => {
+    loadPatients();
+  }, []);
+
+  const loadPatients = async () => {
+    const { data, error } = await supabase
+      .from("profiles")
+      .select("id, first_name, last_name")
+      .order("created_at", { ascending: false });
+
+    if (error) {
+      toast.error("Failed to load patients");
+      return;
+    }
+
+    setPatients(data || []);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -67,13 +93,23 @@ const CreatePrescription = ({ doctorId }: { doctorId: string }) => {
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <Label htmlFor="patientId">Patient ID</Label>
-            <Input
-              id="patientId"
+            <Label htmlFor="patientId">Patient</Label>
+            <Select
               value={formData.patientId}
-              onChange={(e) => setFormData({ ...formData, patientId: e.target.value })}
+              onValueChange={(value) => setFormData({ ...formData, patientId: value })}
               required
-            />
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select a patient" />
+              </SelectTrigger>
+              <SelectContent>
+                {patients.map((patient) => (
+                  <SelectItem key={patient.id} value={patient.id}>
+                    {patient.first_name} {patient.last_name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           <div>
