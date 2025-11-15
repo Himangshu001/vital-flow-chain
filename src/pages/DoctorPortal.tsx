@@ -15,21 +15,44 @@ const DoctorPortal = () => {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session?.user) {
-        setUser(session.user);
-      } else {
+    const verifyDoctorRole = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (!session?.user) {
         navigate("/auth");
+        setIsLoading(false);
+        return;
       }
+
+      // Verify user has doctor role
+      const { data: roleData, error } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", session.user.id)
+        .eq("role", "doctor")
+        .maybeSingle();
+
+      if (error || !roleData) {
+        toast.error("Unauthorized: Doctor access required");
+        navigate("/");
+        setIsLoading(false);
+        return;
+      }
+
+      setUser(session.user);
       setIsLoading(false);
-    });
+    };
+
+    verifyDoctorRole();
 
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null);
       if (!session?.user) {
+        setUser(null);
         navigate("/auth");
+      } else {
+        verifyDoctorRole();
       }
     });
 

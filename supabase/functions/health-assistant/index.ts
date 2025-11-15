@@ -12,28 +12,48 @@ serve(async (req) => {
   }
 
   try {
-    const { message, userId } = await req.json();
+    // Get authenticated user from JWT
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader) {
+      return new Response(
+        JSON.stringify({ error: "Unauthorized" }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const supabaseKey = Deno.env.get("SUPABASE_ANON_KEY")!;
+    const supabase = createClient(supabaseUrl, supabaseKey, {
+      global: { headers: { Authorization: authHeader } },
+    });
+
+    // Verify authentication
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (authError || !user) {
+      return new Response(
+        JSON.stringify({ error: "Unauthorized" }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const { message } = await req.json();
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
 
     if (!LOVABLE_API_KEY) {
       throw new Error("LOVABLE_API_KEY not configured");
     }
 
-    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const supabase = createClient(supabaseUrl, supabaseKey);
-
-    // Get user's medical context
+    // Get user's medical context using authenticated user ID
     const { data: profile } = await supabase
       .from("profiles")
       .select("*")
-      .eq("id", userId)
+      .eq("id", user.id)
       .single();
 
     const { data: medications } = await supabase
       .from("medications")
       .select("*")
-      .eq("patient_id", userId)
+      .eq("patient_id", user.id)
       .order("created_at", { ascending: false })
       .limit(5);
 

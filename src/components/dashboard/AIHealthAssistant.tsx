@@ -26,7 +26,7 @@ const AIHealthAssistant = ({ userId }: { userId: string }) => {
 
     try {
       const { data, error } = await supabase.functions.invoke("health-assistant", {
-        body: { message: input, userId },
+        body: { message: input },
       });
 
       if (error) throw error;
