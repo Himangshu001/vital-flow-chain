@@ -1,12 +1,30 @@
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { Heart, QrCode, Pill, Shield, ArrowRight } from "lucide-react";
+import { UserProfileMenu } from "@/components/UserProfileMenu";
 
 const Index = () => {
   const navigate = useNavigate();
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-muted to-background">
+      {/* Header with User Profile */}
+      <header className="border-b border-border/50 bg-card/50 backdrop-blur-sm sticky top-0 z-50">
+        <div className="container mx-auto px-4 py-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-gradient-primary rounded-lg shadow-md">
+                <Heart className="w-6 h-6 text-white" />
+              </div>
+              <h1 className="text-xl font-bold bg-gradient-primary bg-clip-text text-transparent">
+                HealthConnect
+              </h1>
+            </div>
+            <UserProfileMenu />
+          </div>
+        </div>
+      </header>
+
       {/* Hero Section */}
       <section className="container mx-auto px-4 py-20 text-center">
         <div className="max-w-4xl mx-auto space-y-6">
