@@ -6,13 +6,14 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { User } from "@supabase/supabase-js";
-import { Heart, QrCode, Pill, FileText, LogOut, User as UserIcon, Activity } from "lucide-react";
+import { Heart, QrCode, Pill, FileText, LogOut, User as UserIcon, Activity, Wallet } from "lucide-react";
 import PatientProfile from "@/components/dashboard/PatientProfile";
 import QRCodeGenerator from "@/components/dashboard/QRCodeGenerator";
 import PrescriptionsView from "@/components/dashboard/PrescriptionsView";
 import MedicationsTracker from "@/components/dashboard/MedicationsTracker";
 import MedicalRecords from "@/components/dashboard/MedicalRecords";
 import AIHealthAssistant from "@/components/dashboard/AIHealthAssistant";
+import { WalletConnect } from "@/components/blockchain/WalletConnect";
 
 const Dashboard = () => {
   const [user, setUser] = useState<User | null>(null);
@@ -91,10 +92,14 @@ const Dashboard = () => {
       {/* Main Content */}
       <main className="container mx-auto px-4 py-8">
         <Tabs defaultValue="profile" className="space-y-6">
-          <TabsList className="grid grid-cols-6 w-full max-w-4xl mx-auto">
+          <TabsList className="grid grid-cols-7 w-full max-w-5xl mx-auto">
             <TabsTrigger value="profile" className="flex items-center gap-2">
               <UserIcon className="w-4 h-4" />
               <span className="hidden sm:inline">Profile</span>
+            </TabsTrigger>
+            <TabsTrigger value="wallet" className="flex items-center gap-2">
+              <Wallet className="w-4 h-4" />
+              <span className="hidden sm:inline">Wallet</span>
             </TabsTrigger>
             <TabsTrigger value="qr" className="flex items-center gap-2">
               <QrCode className="w-4 h-4" />
@@ -120,6 +125,10 @@ const Dashboard = () => {
 
           <TabsContent value="profile">
             <PatientProfile userId={user.id} />
+          </TabsContent>
+
+          <TabsContent value="wallet">
+            <WalletConnect userId={user.id} />
           </TabsContent>
 
           <TabsContent value="qr">

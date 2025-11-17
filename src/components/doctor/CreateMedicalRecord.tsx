@@ -5,8 +5,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
+import { blockchainService } from "@/lib/blockchain";
+import { ShieldCheck } from "lucide-react";
 
 interface Patient {
   id: string;
@@ -17,6 +20,7 @@ interface Patient {
 const CreateMedicalRecord = ({ doctorId }: { doctorId: string }) => {
   const [loading, setLoading] = useState(false);
   const [patients, setPatients] = useState<Patient[]>([]);
+  const [storeOnBlockchain, setStoreOnBlockchain] = useState(true);
   const [formData, setFormData] = useState({
     patientId: "",
     recordType: "",
@@ -59,12 +63,40 @@ const CreateMedicalRecord = ({ doctorId }: { doctorId: string }) => {
         }
       }
 
+      let recordHash = null;
+      let blockchainTxHash = null;
+      let blockchainVerified = false;
+
+      // Store on blockchain if enabled
+      if (storeOnBlockchain) {
+        try {
+          const recordToHash = {
+            diagnosis: formData.diagnosis,
+            record_type: formData.recordType,
+            patient_id: formData.patientId,
+            timestamp: new Date().toISOString(),
+          };
+          
+          recordHash = blockchainService.createRecordHash(recordToHash);
+          blockchainTxHash = await blockchainService.storeRecordHash(recordHash);
+          blockchainVerified = true;
+
+          toast.success("Record hash stored on blockchain");
+        } catch (blockchainError: any) {
+          toast.error("Blockchain storage failed: " + blockchainError.message);
+        }
+      }
+
       const { error } = await supabase.from("medical_records").insert({
         patient_id: formData.patientId,
         doctor_id: doctorId,
         record_type: formData.recordType,
         diagnosis: formData.diagnosis,
         record_data: parsedData,
+        record_hash: recordHash,
+        blockchain_tx_hash: blockchainTxHash,
+        blockchain_verified: blockchainVerified,
+        blockchain_timestamp: blockchainVerified ? new Date().toISOString() : null,
       });
 
       if (error) throw error;
@@ -150,6 +182,20 @@ const CreateMedicalRecord = ({ doctorId }: { doctorId: string }) => {
               rows={4}
             />
             <p className="text-xs text-muted-foreground mt-1">Leave empty or enter valid JSON only</p>
+          </div>
+
+          <div className="flex items-center space-x-2 p-4 bg-muted rounded-lg">
+            <Checkbox
+              id="blockchain"
+              checked={storeOnBlockchain}
+              onCheckedChange={(checked) => setStoreOnBlockchain(checked as boolean)}
+            />
+            <div className="flex items-center gap-2">
+              <Label htmlFor="blockchain" className="cursor-pointer">
+                Store hash on blockchain for immutability
+              </Label>
+              <ShieldCheck className="w-4 h-4 text-green-500" />
+            </div>
           </div>
 
           <Button type="submit" disabled={loading} className="w-full">

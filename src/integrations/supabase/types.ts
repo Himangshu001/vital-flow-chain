@@ -16,30 +16,42 @@ export type Database = {
     Tables: {
       medical_records: {
         Row: {
+          blockchain_timestamp: string | null
+          blockchain_tx_hash: string | null
+          blockchain_verified: boolean | null
           created_at: string | null
           diagnosis: string | null
           doctor_id: string | null
           id: string
           patient_id: string
           record_data: Json | null
+          record_hash: string | null
           record_type: string
         }
         Insert: {
+          blockchain_timestamp?: string | null
+          blockchain_tx_hash?: string | null
+          blockchain_verified?: boolean | null
           created_at?: string | null
           diagnosis?: string | null
           doctor_id?: string | null
           id?: string
           patient_id: string
           record_data?: Json | null
+          record_hash?: string | null
           record_type: string
         }
         Update: {
+          blockchain_timestamp?: string | null
+          blockchain_tx_hash?: string | null
+          blockchain_verified?: boolean | null
           created_at?: string | null
           diagnosis?: string | null
           doctor_id?: string | null
           id?: string
           patient_id?: string
           record_data?: Json | null
+          record_hash?: string | null
           record_type?: string
         }
         Relationships: []
@@ -152,6 +164,8 @@ export type Database = {
           last_name: string | null
           phone: string | null
           updated_at: string | null
+          wallet_address: string | null
+          wallet_verified: boolean | null
         }
         Insert: {
           address?: Json | null
@@ -165,6 +179,8 @@ export type Database = {
           last_name?: string | null
           phone?: string | null
           updated_at?: string | null
+          wallet_address?: string | null
+          wallet_verified?: boolean | null
         }
         Update: {
           address?: Json | null
@@ -178,6 +194,8 @@ export type Database = {
           last_name?: string | null
           phone?: string | null
           updated_at?: string | null
+          wallet_address?: string | null
+          wallet_verified?: boolean | null
         }
         Relationships: []
       }
